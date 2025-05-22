@@ -1,0 +1,72 @@
+#Assessment-1
+
+
+Step1 - Run the Containers
+# Run nginx on port 80
+docker run -d --name nginx-server -p 80:80 nginx
+
+# Run httpd (Apache) on port 8080
+docker run -d --name apache-server -p 8080:80 httpd
+
+# Run MySQL with random root password and expose port 3306
+docker run -d --name mysql-server -p 3306:3306 -e MYSQL_RANDOM_ROOT_PASSWORD=yes mysql
+
+Step 2: Check That All Containers Are Running
+# List all running containers
+docker ps
+
+#Expected Output:
+CONTAINER ID   IMAGE     COMMAND                  PORTS                    NAMES
+xxxxxx         mysql     "docker-entrypoint.s…"   0.0.0.0:3306->3306/tcp   mysql-server
+xxxxxx         httpd     "httpd-foreground"       0.0.0.0:8080->80/tcp     apache-server
+xxxxxx         nginx     "/docker-entrypoint.…"   0.0.0.0:80->80/tcp       nginx-server
+
+# Check the logs of each container to ensure they are running correctly
+
+docker logs nginx-server
+docker logs apache-server
+docker logs mysql-server
+
+# Check the status of each container
+docker inspect -f '{{.State.Status}}' nginx-server
+docker inspect -f '{{.State.Status}}' apache-server
+docker inspect -f '{{.State.Status}}' mysql-server
+
+# Check the health of each container
+docker inspect -f '{{.State.Health.Status}}' nginx-server
+docker inspect -f '{{.State.Health.Status}}' apache-server
+docker inspect -f '{{.State.Health.Status}}' mysql-server
+
+
+Step 3: Get the MySQL Random Root Password
+
+# Check the logs of the MySQL container to find the generated root password
+docker logs mysql-server 2>&1 | grep 'GENERATED ROOT PASSWORD'
+
+
+
+Step 4: Test Access (Optional but Good Practice)
+
+# Access the Nginx and Apache HTTPD servers from your browser
+Access http://localhost → Nginx homepage
+
+# Access the MySQL server using a MySQL client
+Access http://localhost:8080 → Apache HTTPD homepage
+
+
+Step 5: Clean It All Up
+# Stop containers
+docker stop nginx-server apache-server mysql-server
+
+# Remove containers
+docker rm nginx-server apache-server mysql-server
+
+# Remove images (optional)
+To ensure cleanup:
+docker rmi nginx-server apache-server mysql-server
+# Check if the containers are removed
+docker ps -a  # Should show no containers with those names
+
+Step 6: Final Check
+# Should return nothing if all are removed
+docker ps -a | grep -E 'nginx-server|apache-server|mysql-server'
