@@ -1,5 +1,8 @@
 #Assessment-1
+✅ Assignment: Multiple Containers with Different Images
 
+🎯 Objective
+Demonstrate how to run multiple containers with different images and check their status.
 
 Step1 - Run the Containers
 # Run nginx on port 80
@@ -70,3 +73,63 @@ docker ps -a  # Should show no containers with those names
 Step 6: Final Check
 # Should return nothing if all are removed
 docker ps -a | grep -E 'nginx-server|apache-server|mysql-server'
+
+
+
+
+
+✅ Assignment: DNS Round Robin Test
+
+🎯 Objective
+Demonstrate how Docker's virtual network and DNS Round Robin behavior works by setting up multiple containers that respond to the same DNS name using --network-alias.
+
+
+Step 1: Create a User-defined Docker Network
+
+docker network create mynet
+
+
+Step 2: Run Two Elasticsearch Containers with the Same Network Alias
+
+# Run elasticsearch-1
+docker run -d --name es1 --net mynet --network-alias search elasticsearch:2
+
+# Run elasticsearch-2
+docker run -d --name es2 --net mynet --network-alias search elasticsearch:2
+
+Both containers are in mynet and respond to the DNS name search.
+
+
+Step 3: Test DNS Resolution with Alpine + nslookup
+
+docker run --rm --net mynet alpine nslookup search
+
+
+Expected output:
+
+Name:      search
+Addresses: 172.18.0.3
+           172.18.0.4
+
+This shows both containers (es1, es2) responding to the alias search.
+
+
+Step 4: Curl Test from RockyLinux Container to See DNS Round Robin
+
+# Run multiple curl calls to port 9200 of the alias 'search'
+docker run --rm --net mynet rockylinux curl -s search:9200 | grep '"name"'
+
+Repeat the above command several times. The response should alternate between the two container "name" values, for example:
+
+  "name" : "3b1cfd3ea2bd"   # es1
+
+  "name" : "d74a3d4a8e33"   # es2
+
+Each call hits a different container — demonstrating round-robin DNS in action.
+
+
+✅ Step 5: Cleanup (Optional)
+
+docker stop es1 es2
+docker rm es1 es2
+docker network rm mynet
